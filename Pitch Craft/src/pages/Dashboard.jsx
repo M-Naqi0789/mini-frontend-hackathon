@@ -9,7 +9,7 @@ function Dashboard() {
       <h1 className="text-3xl font-bold mb-6">Your Pitches</h1>
       {pitches.length === 0 ? (
         <div className="text-center p-8 border-dashed border-2 border-gray-300 rounded-lg">
-          <p className="text-lg text-gray-600 mb-4">You have no saved pitches yet. </p>
+          <p className="text-lg text-gray-600 mb-4"></p>
           <Link to="/create" className="btn-primary">
             Create New Pitch
           </Link>
