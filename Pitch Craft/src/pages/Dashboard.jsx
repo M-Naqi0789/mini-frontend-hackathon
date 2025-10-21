@@ -27,7 +27,7 @@ function Dashboard() {
         </ul>
       )}
       <p className="mt-6 text-sm text-gray-500 text-center italic">
-        AI sirf madad ke liye hai, final faisla aapka apna hai.
+        AI for assistance   
       </p>
     </div>
   )

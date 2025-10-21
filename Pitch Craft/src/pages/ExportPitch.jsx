@@ -1,61 +1,156 @@
-import { useLocation, useParams } from 'react-router-dom'
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
-import { useRef } from 'react'
+import { useLocation, useParams, useNavigate } from "react-router-dom";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import { useRef } from "react";
+import LandingPage from "./LandingPage";
 
 function ExportPitch() {
-  const { id } = useParams()
-  const location = useLocation()
-  const pitch = location.state?.pitch
-  const pitchRef = useRef(null)
+  const { id } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const pitch = location.state?.pitch;
+  const pitchRef = useRef(null);
 
   const handleExportPDF = () => {
-    if (!pitchRef.current) return
+    if (!pitchRef.current || !pitch) return;
 
-    html2canvas(pitchRef.current).then((canvas) => {
-      const imgData = canvas.toDataURL('image/png')
-      const pdf = new jsPDF('p', 'mm', 'a4')
-      const imgProps = pdf.getImageProperties(imgData)
-      const pdfWidth = pdf.internal.pageSize.getWidth()
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
+    const buttons = document.getElementById("export-actions");
+    if (buttons) buttons.style.display = "none";
 
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
-      pdf.save(`${pitch.name}_PitchCraft_${id}.pdf`)
-    })
-  }
+    html2canvas(pitchRef.current, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+    }).then((canvas) => {
+      const imgData = canvas.toDataURL("image/png");
+      if (buttons) buttons.style.display = "flex";
+
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const imgProps = pdf.getImageProperties(imgData);
+      const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeight);
+      pdf.save(`${pitch.name}_PitchCraft_${id}.pdf`);
+    });
+  };
+
+  const handleCopyLink = () => {
+    const link = window.location.href.replace(`/export/${id}`, `/public/${id}`);
+    navigator.clipboard.writeText(link);
+    alert(`Pitch link copied to clipboard:\n${link}`);
+  };
 
   if (!pitch) {
-    return <div className="pitch-container text-center text-red-500">No pitch data to export.</div>
+    return (
+      <div className="pitch-container text-center p-10 bg-white rounded-xl shadow-lg text-red-600 font-bold">
+        No pitch data found to export.
+      </div>
+    );
   }
 
   return (
     <div className="pitch-container">
-      <h1 className="text-3xl font-bold mb-6">Export Pitch: {pitch.name}</h1>
-      <button onClick={handleExportPDF} className="btn-primary mb-8">
-        Download as PDF
-      </button>
-
-      <div className="border border-gray-300 rounded-lg p-6 bg-gray-50" ref={pitchRef}>
-        <h2 className="text-2xl font-bold text-blue-700 mb-2">{pitch.name}</h2>
-        <p className="text-lg italic text-gray-500 mb-4">{pitch.tagline}</p>
-
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-xl font-semibold">Elevator Pitch</h3>
-            <p>{pitch.pitch}</p>
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold">Target Audience</h3>
-            <p>{pitch.audience}</p>
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold">UVP</h3>
-            <p>{pitch.uvp}</p>
-          </div>
+           {" "}
+      <div
+        className="flex justify-between items-center mb-8"
+        id="export-actions"
+      >
+               {" "}
+        <h1 className="text-3xl font-bold text-gray-800">
+          Export: {pitch.name}
+        </h1>
+               {" "}
+        <div className="space-x-4 flex">
+                   {" "}
+          <button
+            onClick={() => navigate(`/pitch/${id}`, { state: { pitch } })}
+            className="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition"
+          >
+                      Back to Edit          {" "}
+          </button>
+                   {" "}
+          <button
+            onClick={handleExportPDF}
+            className="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition"
+          >
+                        Download PDF          {" "}
+          </button>
+                   {" "}
+          <button onClick={handleCopyLink} className="btn-primary">
+                        Copy Share Link          {" "}
+          </button>
+                 {" "}
         </div>
+             {" "}
       </div>
+           {" "}
+      <div
+        className="bg-white p-10 rounded-xl shadow-2xl border-t-4 border-blue-600"
+        ref={pitchRef}
+      >
+               {" "}
+        <header className="mb-8 pb-4 border-b-2 border-gray-100">
+                   {" "}
+          <h2 className="text-4xl font-extrabold text-blue-800">
+            {pitch.name}
+          </h2>
+                   {" "}
+          <p className="text-xl italic text-gray-600 mt-1">{pitch.tagline}</p> 
+               {" "}
+        </header>
+               {" "}
+        <div className="space-y-10">
+                   {" "}
+          <section>
+                       {" "}
+            <h3 className="text-2xl font-bold text-gray-700 mb-3 border-l-4 border-blue-500 pl-3">
+              The Pitch
+            </h3>
+                       {" "}
+            <p className="text-gray-800 text-lg leading-relaxed bg-blue-50 p-4 rounded-lg shadow-inner">
+              {pitch.pitch}
+            </p>
+                     {" "}
+          </section>
+                             {" "}
+          <section>
+                       {" "}
+            <h3 className="text-2xl font-bold text-gray-700 mb-3 border-l-4 border-blue-500 pl-3">
+              Target Audience
+            </h3>
+                       {" "}
+            <p className="text-gray-700 text-base leading-relaxed">
+              {pitch.audience}
+            </p>
+                     {" "}
+          </section>
+                   {" "}
+          <section>
+                       {" "}
+            <h3 className="text-2xl font-bold text-gray-700 mb-3 border-l-4 border-blue-500 pl-3">
+              Unique Value Proposition (UVP)
+            </h3>
+                       {" "}
+            <p className="text-gray-700 text-base leading-relaxed">
+              {pitch.uvp}
+            </p>
+                     {" "}
+          </section>
+                 {" "}
+        </div>
+                       {" "}
+        <footer className="mt-12 pt-4 border-t border-gray-200 text-center">
+                   {" "}
+          <p className="text-sm text-gray-500">
+            Generated by PitchCraft on {new Date().toLocaleDateString()}.
+          </p>
+                 {" "}
+        </footer>
+             {" "}
+      </div>
+         {" "}
     </div>
-  )
+  );
 }
 
-export default ExportPitch
+export default ExportPitch;
